@@ -24,15 +24,19 @@ import (
 // If [Writer.UseCRLF] is true,
 // the Writer ends each output line with \r\n instead of \n.
 //
+// If [Writer.QuoteAll] is true,
+// the Writer encloses all fields in quotes.
+//
 // The writes of individual records are buffered.
 // After all data has been written, the client should call the
 // [Writer.Flush] method to guarantee all data has been forwarded to
 // the underlying [io.Writer].  Any errors that occurred should
 // be checked by calling the [Writer.Error] method.
 type Writer struct {
-	Comma   rune // Field delimiter (set to ',' by NewWriter)
-	UseCRLF bool // True to use \r\n as the line terminator
-	w       *bufio.Writer
+	Comma    rune // Field delimiter (set to ',' by NewWriter)
+	UseCRLF  bool // True to use \r\n as the line terminator
+	QuoteAll bool // True to force quotation of all fields
+	w        *bufio.Writer
 }
 
 // NewWriter returns a new Writer that writes to w.
@@ -146,7 +150,8 @@ func (w *Writer) WriteAll(records [][]string) error {
 }
 
 // fieldNeedsQuotes reports whether our field must be enclosed in quotes.
-// Fields with a Comma, fields with a quote or newline, and
+// If QuoteAll is true, enclose in quotes.
+// Otherwise, fields with a Comma, fields with a quote or newline, and
 // fields which start with a space must be enclosed in quotes.
 // We used to quote empty strings, but we do not anymore (as of Go 1.4).
 // The two representations should be equivalent, but Postgres distinguishes
@@ -158,6 +163,9 @@ func (w *Writer) WriteAll(records [][]string) error {
 // of Microsoft Excel and Google Drive.
 // For Postgres, quote the data terminating string `\.`.
 func (w *Writer) fieldNeedsQuotes(field string) bool {
+	if w.QuoteAll {
+		return true
+	}
 	if field == "" {
 		return false
 	}

@@ -12,21 +12,28 @@ import (
 )
 
 var writeTests = []struct {
-	Input   [][]string
-	Output  string
-	Error   error
-	UseCRLF bool
-	Comma   rune
+	Input    [][]string
+	Output   string
+	Error    error
+	UseCRLF  bool
+	Comma    rune
+	QuoteAll bool
 }{
 	{Input: [][]string{{"abc"}}, Output: "abc\n"},
+	{Input: [][]string{{"abc"}}, Output: `"abc"` + "\n", QuoteAll: true},
 	{Input: [][]string{{"abc"}}, Output: "abc\r\n", UseCRLF: true},
+	{Input: [][]string{{"abc"}}, Output: `"abc"` + "\r\n", UseCRLF: true, QuoteAll: true},
 	{Input: [][]string{{`"abc"`}}, Output: `"""abc"""` + "\n"},
 	{Input: [][]string{{`a"b`}}, Output: `"a""b"` + "\n"},
+	{Input: [][]string{{`a"b`}}, Output: `"a""b"` + "\n", QuoteAll: true},
 	{Input: [][]string{{`"a"b"`}}, Output: `"""a""b"""` + "\n"},
+	{Input: [][]string{{`"a"b"`}}, Output: `"""a""b"""` + "\n", QuoteAll: true},
 	{Input: [][]string{{" abc"}}, Output: `" abc"` + "\n"},
 	{Input: [][]string{{"abc,def"}}, Output: `"abc,def"` + "\n"},
 	{Input: [][]string{{"abc", "def"}}, Output: "abc,def\n"},
+	{Input: [][]string{{"abc", "def"}}, Output: `"abc","def"` + "\n", QuoteAll: true},
 	{Input: [][]string{{"abc"}, {"def"}}, Output: "abc\ndef\n"},
+	{Input: [][]string{{"abc"}, {"def"}}, Output: `"abc"` + "\n" + `"def"` + "\n", QuoteAll: true},
 	{Input: [][]string{{"abc\ndef"}}, Output: "\"abc\ndef\"\n"},
 	{Input: [][]string{{"abc\ndef"}}, Output: "\"abc\r\ndef\"\r\n", UseCRLF: true},
 	{Input: [][]string{{"abc\rdef"}}, Output: "\"abcdef\"\r\n", UseCRLF: true},
@@ -36,6 +43,7 @@ var writeTests = []struct {
 	{Input: [][]string{{"", "", ""}}, Output: ",,\n"},
 	{Input: [][]string{{"", "", "a"}}, Output: ",,a\n"},
 	{Input: [][]string{{"", "a", ""}}, Output: ",a,\n"},
+	{Input: [][]string{{"", "a", ""}}, Output: `"","a",""` + "\n", QuoteAll: true},
 	{Input: [][]string{{"", "a", "a"}}, Output: ",a,a\n"},
 	{Input: [][]string{{"a", "", ""}}, Output: "a,,\n"},
 	{Input: [][]string{{"a", "", "a"}}, Output: "a,,a\n"},
@@ -54,6 +62,7 @@ func TestWrite(t *testing.T) {
 		b := &strings.Builder{}
 		f := NewWriter(b)
 		f.UseCRLF = tt.UseCRLF
+		f.QuoteAll = tt.QuoteAll
 		if tt.Comma != 0 {
 			f.Comma = tt.Comma
 		}
