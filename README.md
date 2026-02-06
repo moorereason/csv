@@ -1,7 +1,7 @@
 github.com/moorereason/csv [![Go Reference](https://pkg.go.dev/badge/github.com/moorereason/csv.svg)](https://pkg.go.dev/github.com/moorereason/csv)
-============================
+==========================
 
-A drop-in replacement for the stdlib [`encoding/csv`](https://pkg.go.dev/encoding/csv) package with the one additional feature:
+A drop-in replacement for the stdlib [`encoding/csv`](https://pkg.go.dev/encoding/csv) package with one additional feature:
 provide a `Writer.QuoteAll` boolean to force quoting of all fields.
 
 That's it.
@@ -10,6 +10,8 @@ That's it.
 
 The Go Authors have [made it clear](https://github.com/golang/go/issues/12755) that they will not add this feature.
 The cleanest solution was to fork the package, add a few lines of code, and move on.
+
+The stdlib package is rarely updated, but I do intend to stay in sync with changes as they are released.
 
 ## Fork
 
